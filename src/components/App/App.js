@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import Searchbar from "../Searchbar";
 import ImageGallery from "../Gallery";
 import Button from "../Button";
@@ -9,88 +9,79 @@ import * as imageApi from "../../servise/apiFeatch";
 import mapper from "../../utils/mapper";
 
 import "./App.css";
-// console.log(imageApi);
-class App extends Component {
-  state = {
-    query: "",
-    page: 1,
-    isLoading: false,
-    images: [],
-    isModal: false,
-    modalImg: "",
-  };
 
-  handleToggleModal = (modalImg) => {
-    this.setState({ modalImg: modalImg });
-    this.setState({ isModal: !this.state.isModal });
-  };
+const App = () => {
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [isLoading, setLoading] = useState(false);
+  const [images, setImages] = useState([]);
+  const [isModal, setModal] = useState(false);
+  const [modalImg, setModalImg] = useState("");
 
-  // EscCloseModal = (event) => {
-  //   if (event.key === "Escape") {
-  //     this.onCloseModal();
-  //   }
-  // };
-
-  handleSubmit = (query) => {
-    this.setState({ query: query, page: 1, images: [] });
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    const { query, page } = this.state;
-    if (prevState.query !== query || prevState.page !== page) {
-      this.fetchImages(query, page);
+  useEffect(() => {
+    if (query === "") {
+      return;
     }
+    fetchImages(query, page);
     if (page > 1) {
+      console.log(`page`, page);
+
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: "smooth",
       });
     }
-  }
+  }, [query, page]);
 
-  fetchImages = (query, page) => {
-    this.setState({ isLoading: true });
+  const fetchImages = (query, page) => {
+    setLoading(true);
 
     imageApi
       .fetchImg(query, page)
       .then(({ data: { hits } }) =>
-        this.setState((prevState) => ({
-          images: [...prevState.images, ...mapper(hits)],
-        }))
+        setImages((prevState) => [...prevState, ...mapper(hits)])
       )
       .catch((error) => console.log(`error`, error))
       .finally(() => {
-        this.setState({ isLoading: false });
+        setLoading(false);
       });
   };
 
-  onClickLoadMore = (e) => {
-    this.setState((prevState) => ({ page: prevState.page + 1 }));
+  const handleToggleModal = (modalImg) => {
+    setModalImg(modalImg);
+    setModal(!isModal);
   };
 
-  render() {
-    const { images, isLoading, isModal, query, modalImg } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.handleSubmit} />
-        {!!images.length && (
-          <ImageGallery images={images} onModal={this.handleToggleModal} />
-        )}
-        {images.length >= 12 && !isLoading && (
-          <Button onClickLoadMore={this.onClickLoadMore} />
-        )}
-        {isModal && (
-          <Modal
-            image={modalImg}
-            query={query}
-            onCloseModal={this.handleToggleModal}
-          />
-        )}
+  const handleSubmit = (query) => {
+    setQuery(query);
+    setImages([]);
+    setPage(1);
+  };
 
-        {isLoading && <Loader />}
-      </>
-    );
-  }
-}
+  const onClickLoadMore = (e) => {
+    setPage((prevState) => prevState + 1);
+  };
+
+  return (
+    <>
+      <Searchbar onSubmit={handleSubmit} />
+      {!!images.length && (
+        <ImageGallery images={images} onModal={handleToggleModal} />
+      )}
+      {images.length >= 12 && !isLoading && (
+        <Button onClickLoadMore={onClickLoadMore} />
+      )}
+      {isModal && (
+        <Modal
+          image={modalImg}
+          query={query}
+          onCloseModal={handleToggleModal}
+        />
+      )}
+
+      {isLoading && <Loader />}
+    </>
+  );
+};
 
 export default App;

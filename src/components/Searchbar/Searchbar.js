@@ -1,52 +1,45 @@
-import React, { Component } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 
 import styles from "./Searchbar.module.css";
 
-class Searchbar extends Component {
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
+const Searchbar = ({ onSubmit }) => {
+  const [value, setValue] = useState("");
+
+  const handleChangeInput = ({ target: { value } }) => {
+    setValue(value);
   };
 
-  state = {
-    value: "",
-  };
-
-  handleChangeInput = ({ target: { value } }) => {
-    this.setState({ value: value });
-    // console.log(value);
-  };
-
-  handleSubmit = (e) => {
-    const { value } = this.state;
-    const { onSubmit } = this.props;
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (value.trim()) {
       onSubmit(value);
-      this.setState({ value: "" });
+      setValue("");
     }
   };
 
-  render() {
-    return (
-      <header className={styles.Searchbar}>
-        <form className={styles.SearchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={styles.Button}>
-            <span className={styles.Label}>Search</span>
-          </button>
+  return (
+    <header className={styles.Searchbar}>
+      <form className={styles.SearchForm} onSubmit={handleSubmit}>
+        <button type="submit" className={styles.Button}>
+          <span className={styles.Label}>Search</span>
+        </button>
 
-          <input
-            className={styles.Input}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.handleChangeInput}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+        <input
+          className={styles.Input}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleChangeInput}
+        />
+      </form>
+    </header>
+  );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
 
 export default Searchbar;
