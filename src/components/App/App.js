@@ -23,15 +23,17 @@ const App = () => {
       return;
     }
     fetchImages(query, page);
-    if (page > 1) {
-      console.log(`page`, page);
-
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: "smooth",
-      });
-    }
   }, [query, page]);
+
+  useEffect(() => {
+    if (page === 1) {
+      return;
+    }
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: "smooth",
+    });
+  });
 
   const fetchImages = (query, page) => {
     setLoading(true);
